@@ -5,6 +5,7 @@ import java.util.List;
 import Entity.FlightDetails;
 
 public class DataMarshaller {
+	//byte representation for data types
 	private final byte nullByte = 0;
 	private final byte boolByte = 1;
 	private final byte integerByte = 2;
@@ -15,6 +16,7 @@ public class DataMarshaller {
 	private final byte flightDetailsByte = 7;
 	private final byte remoteObjByte = 8;
 	
+	//combines two byte arrays together
 	public byte[] appendBytes(byte[] bytes1, byte[] bytes2){
 		byte[] bytes = new byte[bytes1.length + bytes2.length];
 		System.arraycopy(bytes1, 0, bytes, 0, bytes1.length);
@@ -22,12 +24,14 @@ public class DataMarshaller {
 		return bytes;
 	}
 	
+	//retrieves a subset of a byte array
 	public byte[] subBytes(byte[] bytes, int start, int end){
 		byte[] subBytes = new byte[end-start];
 		System.arraycopy(bytes, start, subBytes, 0, subBytes.length);
 		return subBytes;
 	}
 	
+	//returns the appropriate convert based on data type byte
 	private Convertor getConvertor(byte type){
 		switch(type){
 		case boolByte:
@@ -48,6 +52,17 @@ public class DataMarshaller {
 		return null;
 	}
 	
+	//converts java data/object to byte array message
+	//format of message as follows
+	//null
+	//(null type byte)
+	//boolean, int, long, float, flightDetails:
+	//(data type byte)(byte array of data)
+	//string:
+	//(string type byte)(length of string)(byte array of data)
+	//array
+	//(array type byte)(data type byte of array item)(length of array)(byte array of data)
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public byte[] toMessage(boolean data){
 		return appendBytes(new byte[]{boolByte}, getConvertor(boolByte).toBytes(data));
 	}
@@ -88,69 +103,82 @@ public class DataMarshaller {
 	public byte[] nullMessage(){
 		return new byte[]{nullByte};
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
+	//unmarshalls data from byte array
 	public Object fromMessage(byte[] message){
+		//data object
 		Object data = null;
+		//data object buffer
 		List dataBuffer = new ArrayList();
+		//if message is too short
 		if(message.length < 2){
+			//return null
 			return data;
 		}
-		int counter = 0;
-		while(counter < message.length){
+		//keep track of starting position of unread bytes
+		int position = 0;
+		//while not end of byte array
+		while(position < message.length){
 			Convertor convertor = null;
-			switch(message[counter]){
+			//check data type byte
+			switch(message[position]){
 			case nullByte:
 				convertor = null;
+				position++;
 			case boolByte:
 			case integerByte:
 			case longByte:
 			case floatByte:
 			case flightDetailsByte:
-				convertor = getConvertor(message[counter]);
-				counter++;
+				//get convertor
+				convertor = getConvertor(message[position]);
+				position++;
 				break;
 			case stringByte:
-				StringConvertor stringConvertor = (StringConvertor) getConvertor(message[counter]);
-				counter++;
-				stringConvertor.setSize(message[counter]);
-				counter++;
+				//get convertor
+				StringConvertor stringConvertor = (StringConvertor) getConvertor(message[position]);
+				position++;
+				//initialize size parmameter of convertor
+				stringConvertor.setSize(message[position]);
+				position++;
 				convertor = stringConvertor;
 				break;
 			case arrayByte:
-				ArrayConvertor arrayConvertor = (ArrayConvertor) getConvertor(message[counter]);
-				counter++;
-				arrayConvertor.setInternalConvertor(getConvertor(message[counter]));
-				counter++;
-				arrayConvertor.setSize(message[counter]);
-				counter++;	
+				//get convertor
+				ArrayConvertor arrayConvertor = (ArrayConvertor) getConvertor(message[position]);
+				position++;
+				//get second convertor array item type
+				arrayConvertor.setInternalConvertor(getConvertor(message[position]));
+				position++;
+				//initialize size parmameter of convertor
+				arrayConvertor.setSize(message[position]);
+				position++;	
 				convertor = arrayConvertor;
 				break;
 			case remoteObjByte:
 				break;
 			}
+			//if convertor is null
 			if(convertor == null)
+				//data is null
 				data = null;
+			//else
 			else{
-				data = convertor.fromBytes(subBytes(message, counter, counter+convertor.getByteCount()));
-				counter += convertor.getByteCount();
+				//convert bytes to data using convertor
+				data = convertor.fromBytes(subBytes(message, position, position+convertor.getByteCount()));
+				//updates position
+				position += convertor.getByteCount();
 			}
+			//adds data to bufffer
 			dataBuffer.add(data);
 		}
+		//buffer has more than 1 item
 		if(dataBuffer.size() > 1){
+			//return buffer
 			return dataBuffer;
 		}
+		//else return data
 		return data;
-	}
-	
-	public static void main(String[] args){
-		byte[] a = {0, 0, 0};
-		byte[] b = {1, 3, 5};
-		byte[] c = new DataMarshaller().appendBytes(a, b);
-		byte[] d = new DataMarshaller().subBytes(c, 3, 5);
-		
-		byte[] printing = d;
-		for(int i=0; i<printing.length; i++){
-			System.out.println(printing[i]);
-		}
 	}
 }

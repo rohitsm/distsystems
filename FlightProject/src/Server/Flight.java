@@ -1,4 +1,5 @@
 package Server;
+//flight class used by the server to hold flight data
 public class Flight {
 	private int iD;
 	private String source;
@@ -17,6 +18,8 @@ public class Flight {
 		this.availableSeats = availableSeats;
 	}
 
+	//getter and setter for attributes
+	///////////////////////////////////////////////////
 	public int getiD() {
 		return iD;
 	}
@@ -64,4 +67,5 @@ public class Flight {
 	public void setAvailableSeats(int availableSeats) {
 		this.availableSeats = availableSeats;
 	}
+	///////////////////////////////////////////////////
 }

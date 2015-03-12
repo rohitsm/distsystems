@@ -1,7 +1,10 @@
 package Server;
 
+//class used for caching reply messages
 public class RequestHistory {
+	//message number
 	private int requestNo;
+	//reply message in bytes
 	private byte[] replyMessage;
 	
 	public RequestHistory(int requestNo, byte[] replyMessage){
@@ -9,6 +12,8 @@ public class RequestHistory {
 		this.setReplyMessage(replyMessage);
 	}
 
+	//getter and setter for attributes
+	//////////////////////////////////////////////////
 	public int getRequestNo() {
 		return requestNo;
 	}
@@ -24,4 +29,5 @@ public class RequestHistory {
 	public void setReplyMessage(byte[] replyMessage) {
 		this.replyMessage = replyMessage;
 	}
+	//////////////////////////////////////////////////
 }
