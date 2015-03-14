@@ -14,6 +14,9 @@ import Entity.FlightMonitorInterface;
 public class FlightImplementation implements FlightInterface{
 	//maps flight id to flights
 	private Map<Integer, Flight> flights;
+	//flight id that monitor request has accepted
+	private Integer toBeMonitoredFlight;
+	private long monitorPeriod;
 	//maps flight id to monitor objects
 	private Map<Integer, Set<FlightMonitorInterface>> monitors;
 	//maps monitor object to its expiry
@@ -21,6 +24,9 @@ public class FlightImplementation implements FlightInterface{
 	
 	public FlightImplementation(){
 		flights = new HashMap();
+		toBeMonitoredFlight = null;
+		monitors = new HashMap();
+		monitorEndTime = new HashMap();
 	}
 	
 	public FlightImplementation(Map<Integer, Flight> flights){
@@ -112,20 +118,38 @@ public class FlightImplementation implements FlightInterface{
 			return false;
 		}
 		//else
+		//initialized to monitor flight ID
+		toBeMonitoredFlight = iD;
+		//set monitor period;
+		monitorPeriod = msec;
+		//return true
+		return true;
+	}
+	
+	//adds monitor stub (requires monitor flight function to be executed first)
+	public void addMonitor(FlightMonitorInterface monitor){
+		//if no flight to be monitored
+		if(toBeMonitoredFlight == null)
+			//return
+			return;
+		//else
+		//retrieve monitor parameters
+		int iD = toBeMonitoredFlight;
+		long msec = monitorPeriod;
+		//clear flight to be monitored
+		toBeMonitoredFlight = null;
 		//create empty monitor set for flight if set not initialized
 		if(!monitors.containsKey(iD)){
 			monitors.put(iD, new HashSet());
 		}
 		//add monitor to monitor set
-		monitors.get(iD).add(null);
+		monitors.get(iD).add(monitor);
 		//set end time for monitor
-		monitorEndTime.put(null, System.currentTimeMillis()+msec);
-		//return true
-		return true;
+		monitorEndTime.put(monitor, System.currentTimeMillis()+msec);
 	}
 	
 	//update respective monitors on changes in flight seat vacancy
-	public void informMonitor(Integer iD, int seats){
+	private void informMonitor(Integer iD, int seats){
 		//if no monitor for specified flight ID
 		if(!monitors.containsKey(iD)){
 			//do nothing

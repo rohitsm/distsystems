@@ -25,13 +25,14 @@ public class FlightMonitorSkeleton implements SkeletonInterface{
 	//data marshaller
 	private DataMarshaller marshaller;
 	
-	public FlightMonitorSkeleton(int port, FlightMonitorImplementation flightMonitor) throws SocketException{
-		this(new DatagramSocket(port), flightMonitor);
-	}
-	
 	public FlightMonitorSkeleton(DatagramSocket socket, FlightMonitorImplementation flightMonitor){
 		this.socket = socket;
 		this.flightMonitor = flightMonitor;
+		marshaller = new DataMarshaller();
+	}
+	
+	public FlightMonitorSkeleton(int port, FlightMonitorImplementation flightMonitor) throws SocketException{
+		this(new DatagramSocket(port), flightMonitor);
 	}
 	
 	//listen until monitor period has ended

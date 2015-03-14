@@ -19,6 +19,23 @@ public class FlightServerApplication {
 		flights.addFlight(1, new Flight(1, "a", "b", 1000, (float)2.40, 30));
 		//create flight skeleton
 		FlightSkeleton skeleton = new FlightSkeleton(flights);
+		
+		//for testing
+		//creates a thread to book/unbook a seat every 1 second
+		new Thread(){
+			public void run(){
+				while(true){
+					flights.bookFlight(1, Math.random()>0.5?1:-1);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
+		
 		try {
 			//create server
 			Server server = new Server(port);

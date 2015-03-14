@@ -1,5 +1,8 @@
 package Server;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +24,8 @@ public class FlightSkeleton implements SkeletonInterface{
 	public FlightSkeleton(FlightImplementation flights){
 		this.flights = flights;
 		this.marshaller = new DataMarshaller();
+		bookFlightHistory = new HashMap();
+		monitorFlightHistory = new HashMap();
 	}
 	
 	public String getName(){
@@ -92,11 +97,22 @@ public class FlightSkeleton implements SkeletonInterface{
 				//return cached reply
 				return monitorFlightHistory.get(sourceAddress).getReplyMessage();
 			}else{
+				
 				//unmarshall parameters from message
 				List objects = (List) marshaller.fromMessage(data);
 				//pass parameter to method implementation
+				boolean result =  flights.monitorFlight((Integer)objects.get(0), (Long)objects.get(1));
+				try {
+					//if monitor request accepted
+					if(result)
+						//add monitor stub to flight implementation
+						flights.addMonitor(new FlightMonitorStub(new DatagramSocket(), packet.getAddress(), packet.getPort()));
+				} catch (SocketException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				//marshall reply
-				byte[] reply = marshaller.toMessage(flights.monitorFlight((Integer)objects.get(0), (Long)objects.get(1)));
+				byte[] reply = marshaller.toMessage(result);
 				//cache reply
 				monitorFlightHistory.put(sourceAddress, new RequestHistory(messageNo, data));
 				//return marshalled reply
