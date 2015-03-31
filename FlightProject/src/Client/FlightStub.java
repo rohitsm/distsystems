@@ -94,4 +94,47 @@ public class FlightStub extends Stub implements FlightInterface{
 		}
 		return data;
 	}
+
+	//additional functions
+	//login to flight system
+	@Override
+	public boolean login(String user, String password) {
+		// TODO Auto-generated method stub
+		//prepare parameters
+		byte[] parameters = marshaller.toMessage(user);
+		parameters = marshaller.appendBytes(parameters, marshaller.toMessage(password));
+		//send request
+		Boolean data = (Boolean) sendRequest("login", parameters, Boolean.class);
+		if(data==null)
+			data = false;
+		return data;
+	}
+
+	//return number of tickets booked by user
+	@Override
+	public int viewTickets(int iD) {
+		// TODO Auto-generated method stub
+		//prepare parameters
+		byte[] parameters = marshaller.toMessage(iD);
+		//send request
+		Integer data = (Integer) sendRequest("viewTickets", parameters, Integer.class);
+		if(data == null){
+			data = -1;
+		}
+		return data;
+	}
+
+	//cancels booking of user
+	@Override
+	public boolean cancelTickets(int iD, int tickets) {
+		// TODO Auto-generated method stub
+		//prepare parameters
+		byte[] parameters = marshaller.toMessage(iD);
+		parameters = marshaller.appendBytes(parameters, marshaller.toMessage(tickets));
+		//send request
+		Boolean data = (Boolean) sendRequest("cancelTickets", parameters, Boolean.class);
+		if(data==null)
+			data = false;
+		return data;
+	}
 }

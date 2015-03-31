@@ -20,12 +20,14 @@ public class FlightSkeleton extends Skeleton{
 	//reply cache, maps a client ip to the last sent reply
 	private Map<InetAddress, RequestHistory> bookFlightHistory;
 	private Map<InetAddress, RequestHistory> monitorFlightHistory;
+	private Map<InetAddress, RequestHistory> cancelTicketHistory;
 	
 	public FlightSkeleton(FlightImplementation flights){
 		this.flights = flights;
 		marshaller = new DataMarshaller();
 		bookFlightHistory = new HashMap();
 		monitorFlightHistory = new HashMap();
+		cancelTicketHistory = new HashMap();
 		
 		//initialise function map
 		functionMap = new HashMap();
@@ -62,6 +64,7 @@ public class FlightSkeleton extends Skeleton{
 					return bookFlightHistory.get(sourceAddress).getReplyMessage();
 				//else
 				}else{
+					setUser(sourceAddress);
 					//unmarshall parameters from message
 					List objects = (List) marshaller.fromMessage(data);
 					//pass parameter to method implementation
@@ -101,12 +104,76 @@ public class FlightSkeleton extends Skeleton{
 					//marshall reply
 					byte[] reply = marshaller.toMessage(result);
 					//cache reply
-					monitorFlightHistory.put(sourceAddress, new RequestHistory(messageNo, data));
+					monitorFlightHistory.put(sourceAddress, new RequestHistory(messageNo, reply));
 					//return marshalled reply
 					return reply;
 				}
 			}
 		});
+		
+		functionMap.put("login", new SkeletonFunctionInterface(){
+			@Override
+			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
+				//unmarshall parameters from message
+				List objects = (List) marshaller.fromMessage(data);
+				//pass parameter to method implementation
+				String user = (String)objects.get(0);
+				boolean result = flights.login(user, (String)objects.get(1));
+				//if login successful
+				if(result){
+					//register user
+					flights.registerUser(sourceAddress, user);
+					//clear cache for previous user using the same ip
+					clearCache(sourceAddress);
+				}
+				//marshall reply
+				return marshaller.toMessage(result);
+			}
+		});
+		
+		functionMap.put("viewTickets", new SkeletonFunctionInterface(){
+			@Override
+			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
+				setUser(sourceAddress);
+				//unmarshall parameters from message
+				int iD = (Integer)marshaller.fromMessage(data);
+				//pass parameter to method implementation
+				//marshall reply
+				return marshaller.toMessage(flights.viewTickets(iD));
+			}
+		});
+		
+		functionMap.put("cancelTickets", new SkeletonFunctionInterface(){
+			@Override
+			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
+				//check if request is a repeat
+				if(cancelTicketHistory.containsKey(sourceAddress) && messageNo == cancelTicketHistory.get(sourceAddress).getRequestNo()){
+					//return cached reply
+					return cancelTicketHistory.get(sourceAddress).getReplyMessage();
+				}else{
+					setUser(sourceAddress);
+					//unmarshall parameters from message
+					List objects = (List) marshaller.fromMessage(data);
+					//pass parameter to method implementation
+					//marshall reply
+					byte[] reply = marshaller.toMessage(flights.cancelTickets((Integer)objects.get(0), (Integer)objects.get(1)));
+					//cache reply
+					cancelTicketHistory.put(sourceAddress, new RequestHistory(messageNo, reply));
+					//return marshalled reply
+					return reply;
+				}
+			}
+		});
+	}
+	
+	private void setUser(InetAddress address){
+		flights.setUser(address);
+	}
+	
+	private void clearCache(InetAddress address){
+		bookFlightHistory.remove(address);
+		monitorFlightHistory.remove(address);
+		cancelTicketHistory.remove(address);
 	}
 	
 	public String getName(){

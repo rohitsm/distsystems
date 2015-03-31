@@ -16,6 +16,22 @@ import Marshaller.SimSocket;
 
 //client application for flight project
 public class FlightClientApplication {
+	public static void login(FlightInterface flights){
+		Scanner scan = new Scanner(System.in);
+		while(true){
+			System.out.println("Please enter username.");
+			String user = scan.nextLine();
+			System.out.println("Please enter password.");
+			String password = scan.nextLine();
+			if(flights.login(user, password)){
+				System.out.println("Login Successful");
+				break;
+			}else{
+				System.out.println("Login Failed. Please try again.");
+			}
+		}
+	}
+	
 	public static void main(String[] args){
 		//if no parameter provided
 		if(args.length < 1){
@@ -25,7 +41,7 @@ public class FlightClientApplication {
 			//args[0] = "155.69.144.89";
 			args[1] = "5000";
 			args[2] = "0.0";
-			args[3] = "0";
+			args[3] = "2000";
 		}
 		//convert string to ip address
 		String[] addressBytes = args[0].split("\\.");
@@ -45,6 +61,8 @@ public class FlightClientApplication {
 			DatagramSocket socket = new SimSocket(lossRate, networkDelay);
 			//create flight stub
 			flights = new FlightStub(socket, InetAddress.getByAddress(addr), port);
+			//request user to login
+			login(flights);
 			//enter problem loop
 			while(true){
 				//print menu
@@ -53,6 +71,8 @@ public class FlightClientApplication {
 				System.out.println("2. Get flight details.");
 				System.out.println("3. Flight booking.");
 				System.out.println("4. Monitor flight.");
+				System.out.println("5. Check tickets booked.");
+				System.out.println("6. Cancel tickets");
 				Scanner scan = new Scanner(System.in);
 				int choice = scan.nextInt();
 				scan.nextLine();
@@ -96,16 +116,24 @@ public class FlightClientApplication {
 					System.out.println("Enter number of seats.");
 					int numOfSeats = scan.nextInt();
 					scan.nextLine();
-					switch(flights.bookFlight(fID, numOfSeats)){
-					case -1:
-						System.out.println("Flight ID not found.");
-						break;
-					case 0:
-						System.out.println("Insufficient seats.");
-						break;
-					case 1:
-						System.out.println("Booking successful.");
-						break;
+					if(numOfSeats <= 0){
+						System.out.println("Invalid seat entry.");
+					}else{
+						switch(flights.bookFlight(fID, numOfSeats)){
+						case -2:
+							System.out.println("Please relog in.");
+							login(flights);
+							break;
+						case -1:
+							System.out.println("Flight ID not found.");
+							break;
+						case 0:
+							System.out.println("Insufficient seats.");
+							break;
+						case 1:
+							System.out.println("Booking successful.");
+							break;
+						}
 					}
 				}
 					break;
@@ -121,6 +149,28 @@ public class FlightClientApplication {
 						System.out.println("Flight ID not found.");
 					}
 					
+				}
+					break;
+				case 5:
+				{
+					System.out.println("Enter flight ID.");
+					int fID = scan.nextInt();
+					scan.nextLine();
+					System.out.println(flights.viewTickets(fID) + " tickets booked for flight ID " + fID + ".");
+				}
+					break;
+				case 6:
+				{
+					System.out.println("Enter flight ID.");
+					int fID = scan.nextInt();
+					scan.nextLine();
+					System.out.println("Enter number of tickets.");
+					int tickets = scan.nextInt();
+					scan.nextLine();
+					if(flights.cancelTickets(fID, tickets))
+						System.out.println("Cancellation sucessful.");
+					else
+						System.out.println("Cancellation failed.");
 				}
 					break;
 				}

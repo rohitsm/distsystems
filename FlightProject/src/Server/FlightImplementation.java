@@ -1,4 +1,5 @@
 package Server;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ public class FlightImplementation implements FlightInterface{
 		toBeMonitoredFlight = null;
 		monitors = new HashMap();
 		monitorEndTime = new HashMap();
+		loadUsers();
 	}
 	
 	public FlightImplementation(Map<Integer, Flight> flights){
@@ -91,6 +93,10 @@ public class FlightImplementation implements FlightInterface{
 		//if flight has sufficient seats
 		Flight flight = flights.get(iD);
 		if(flight.getAvailableSeats()>=seats){
+			//for addition feature
+			if(!recordSeatBooking(iD, seats))
+				return -2;
+			
 			//book seats
 			changeFlightSeat(flight, flight.getAvailableSeats() - seats);
 			//return 1
@@ -170,5 +176,103 @@ public class FlightImplementation implements FlightInterface{
 				monitorEndTime.remove(monitor);
 			}
 		}
+	}
+
+	Map<String, String> userAccounts;
+	Map<InetAddress, String> userIPs;
+	String currentUser;
+	Map<String, Map<Integer, Integer>> userBookings;
+	private void loadUsers(){
+		userAccounts = new HashMap();
+		userAccounts.put("user1", "123");
+		userAccounts.put("user2", "abc");
+		userIPs = new HashMap();
+		currentUser = "";
+		userBookings = new HashMap();
+	}
+	//each user has multiple flights
+	
+	
+	//additional functions
+	//login to flight system
+	@Override
+	public boolean login(String user, String password) {
+		// TODO Auto-generated method stub
+		if(userAccounts.containsKey(user) && userAccounts.get(user).equals(password)){
+			currentUser = user;
+			return true;
+		}
+		return false;
+	}
+	
+	//registers an ip address to the user
+	public void registerUser(InetAddress address, String user){
+		if(currentUser.equals(user)){
+			userIPs.put(address, user);
+		}
+	}
+	
+	//sets current user based on ip address
+	public void setUser(InetAddress address){
+		if(userIPs.containsKey(address)){
+			currentUser = userIPs.get(address);
+		}else{
+			currentUser = "";
+		}
+	}
+	
+	//store booking record in user booking record
+	private boolean recordSeatBooking(int iD, int seats){
+		if(userAccounts.containsKey(currentUser)){
+			int ticketsBooked = viewTickets(iD);
+			if(ticketsBooked == 0){
+				if(!userBookings.containsKey(currentUser))
+					userBookings.put(currentUser, new HashMap());
+			}
+			userBookings.get(currentUser).put(iD, ticketsBooked+seats);
+			return true;
+		}
+		return false;
+		
+	}
+	
+	//return number of tickets booked by user
+	@Override
+	public int viewTickets(int iD) {
+		// TODO Auto-generated method stub
+		//find booking record
+		if(userBookings.containsKey(currentUser)){
+			if(userBookings.get(currentUser).containsKey(iD)){
+				//if exist, return record
+				return userBookings.get(currentUser).get(iD);
+			}
+		}
+		return 0;
+	}
+
+	//cancels booking of user
+	@Override
+	public boolean cancelTickets(int iD, int tickets) {
+		// TODO Auto-generated method stub
+		int ticketsBooked = viewTickets(iD);
+		//if booked tickets 0, no tickets to cancel
+		if(ticketsBooked == 0)
+			return false;
+		//if booked tickets equal cancel tickets
+		if(tickets == ticketsBooked){
+			//remove booking record for flight ID
+			userBookings.get(currentUser).remove(iD);
+		//if booked tickets is great than cancel tickets
+		}else if(tickets < ticketsBooked){
+			//set tickets booked to new value
+			userBookings.get(currentUser).put(iD, ticketsBooked - tickets);
+		}else{
+			//if cancel tickets greater than booked tickets, cancellation fail
+			return false;
+		}
+		//update available seats for flight
+		Flight flight = flights.get(iD);
+		changeFlightSeat(flight, flight.getAvailableSeats() + tickets);
+		return true;
 	}
 }
