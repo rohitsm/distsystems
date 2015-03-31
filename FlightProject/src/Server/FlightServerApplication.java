@@ -17,11 +17,14 @@ public class FlightServerApplication {
 		FlightImplementation flights = new FlightImplementation();
 		//add dummy data
 		flights.addFlight(1, new Flight(1, "a", "b", 1000, (float)2.40, 30));
+		flights.addFlight(2, new Flight(2, "a", "b", 1000, (float)2.40, 30));
+		flights.addFlight(3, new Flight(3, "b", "c", 1000, (float)2.40, 30));
 		//create flight skeleton
 		FlightSkeleton skeleton = new FlightSkeleton(flights);
 		
 		//for testing
 		//creates a thread to book/unbook a seat every 1 second
+		/*
 		new Thread(){
 			public void run(){
 				while(true){
@@ -35,7 +38,7 @@ public class FlightServerApplication {
 				}
 			}
 		}.start();
-		
+		*/
 		try {
 			//create server
 			Server server = new Server(port);

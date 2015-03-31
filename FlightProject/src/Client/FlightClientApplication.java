@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.TimeZone;
 
 import Entity.FlightDetails;
 import Entity.FlightInterface;
@@ -19,10 +20,12 @@ public class FlightClientApplication {
 		//if no parameter provided
 		if(args.length < 1){
 			//initialize parameter to default
-			args = new String[3];
+			args = new String[4];
 			args[0] = "127.0.0.1";
+			//args[0] = "155.69.144.89";
 			args[1] = "5000";
 			args[2] = "0.0";
+			args[3] = "0";
 		}
 		//convert string to ip address
 		String[] addressBytes = args[0].split("\\.");
@@ -34,10 +37,12 @@ public class FlightClientApplication {
 		int port = Integer.parseInt(args[1]);
 		//convert string to packet loss rate
 		double lossRate = Double.parseDouble(args[2]);
+		//convert string to packet loss rate
+		int networkDelay = Integer.parseInt(args[3]);
 		FlightInterface flights;
 		try {
 			//create stimuated socket
-			DatagramSocket socket = new SimSocket(lossRate);
+			DatagramSocket socket = new SimSocket(lossRate, networkDelay);
 			//create flight stub
 			flights = new FlightStub(socket, InetAddress.getByAddress(addr), port);
 			//enter problem loop
@@ -77,7 +82,7 @@ public class FlightClientApplication {
 					if(flight==null){
 						System.out.println("Flight ID not found.");
 					}else{
-						System.out.println("Departure Time: " + new SimpleDateFormat("dd/MM/yy HH:mm").format(new Date(flight.getTime())));
+						System.out.println("Departure Time: " + new SimpleDateFormat("dd/MM/yy HH:mm zzz").format(new Date(flight.getTime())));
 						System.out.println("Airfare: " + String.format("$%.2f", flight.getAirfare()));
 						System.out.println("Seats Available: " + flight.getAvailableSeats());
 					}

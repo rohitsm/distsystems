@@ -35,92 +35,63 @@ public class FlightStub extends Stub implements FlightInterface{
 	@Override
 	public List<Integer> getID(String source, String destination) {
 		// TODO Auto-generated method stub
-		//create header
-		byte[] message = createPacketHeader("getID");
-		//append marshaled parameters
-		message = marshaller.appendBytes(message, marshaller.toMessage(source));
-		message = marshaller.appendBytes(message, marshaller.toMessage(destination));
-		try{
-			//send message for 300 attempts (5 minutes)
-			message = sendUntil(message, 5*60);
-			//return unmarshaled results
-			return (List<Integer>)marshaller.fromMessage(message);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		//prepare parameters
+		byte[] parameters = marshaller.toMessage(source);
+		parameters = marshaller.appendBytes(parameters, marshaller.toMessage(destination));
+		//send request
+		List<Integer> data = (List<Integer>) sendRequest("getID", parameters, List.class);
+		return data;
 	}
 
 	//returns flight details, given flight ID
 	@Override
 	public FlightDetails getFlightDetails(int iD) {
 		// TODO Auto-generated method stub
-		//create header
-		byte[] message = createPacketHeader("getFlightDetails");
-		//append marshaled parameters
-		message = marshaller.appendBytes(message, marshaller.toMessage(iD));
-		try{
-			//send message for 300 attempts (5 minutes)
-			message = sendUntil(message, 5*60);
-			//return unmarshaled results
-			return (FlightDetails)marshaller.fromMessage(message);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		//prepare parameters
+		byte[] parameters = marshaller.toMessage(iD);
+		//send request
+		FlightDetails data = (FlightDetails) sendRequest("getFlightDetails", parameters, FlightDetails.class);
+		return data;
 	}
 
 	//returns result status of seat booking, even the flight ID and number of seats to book
 	@Override
 	public int bookFlight(int iD, int seats) {
 		// TODO Auto-generated method stub
-		//create header
-		byte[] message =  createPacketHeader("bookFlight");
-		//append marshaled parameters
-		message = marshaller.appendBytes(message, marshaller.toMessage(iD));
-		message = marshaller.appendBytes(message, marshaller.toMessage(seats));
-		try{
-			//send message for 300 attempts (5 minutes)
-			message = sendUntil(message, 5*60);
-			//return unmarshaled results
-			return (int)marshaller.fromMessage(message);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return -2;
+		//prepare parameters
+		byte[] parameters = marshaller.toMessage(iD);
+		parameters = marshaller.appendBytes(parameters, marshaller.toMessage(seats));
+		//send request
+		Integer data = (Integer) sendRequest("bookFlight", parameters, Integer.class);
+		if(data==null)
+			data = -2;
+		return data;
 	}
 
 	//returns if monitor method is successful, given flight ID and duration to monitor
 	@Override
 	public boolean monitorFlight(int iD, long msec) {
 		// TODO Auto-generated method stub
-		//create header
-		byte[] message = createPacketHeader("monitorFlight");
-		//append marshaled parameters
-		message = marshaller.appendBytes(message, marshaller.toMessage(iD));
-		message = marshaller.appendBytes(message, marshaller.toMessage(msec));
-		try{
-			//send message for 300 attempts (5 minutes)
-			message = sendUntil(message, 5*60);
-			//unmarshaled results
-			boolean result = (boolean)marshaller.fromMessage(message);
-			//if successful
-			if(result){
-				//create monitor implementation and skeleton
-				FlightMonitorImplementation monitor = new FlightMonitorImplementation(iD);
-				FlightMonitorSkeleton server = new FlightMonitorSkeleton(socket, monitor);
-				//listen for updates
+		//prepare parameters
+		byte[] parameters = marshaller.toMessage(iD);
+		parameters = marshaller.appendBytes(parameters, marshaller.toMessage(msec));
+		//send request
+		Boolean data = (Boolean) sendRequest("monitorFlight", parameters, Boolean.class);
+		if(data==null)
+			data = false;
+		//if successful
+		if(data){
+			//create monitor implementation and skeleton
+			FlightMonitorImplementation monitor = new FlightMonitorImplementation(iD);
+			FlightMonitorSkeleton server = new FlightMonitorSkeleton(socket, monitor);
+			//listen for updates
+			try {
 				server.listen(msec);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			//return unmarshaled results
-			return (boolean)marshaller.fromMessage(message);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return false;
+		return data;
 	}
 }

@@ -3,32 +3,47 @@ package Client;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import Entity.SkeletonInterface;
+import Entity.Skeleton;
+import Entity.SkeletonFunctionInterface;
 import Marshaller.DataMarshaller;
 import Server.FlightImplementation;
 import Server.RequestHistory;
 
 //skeleton of flight monitor (also plays the role of server class)
-public class FlightMonitorSkeleton implements SkeletonInterface{
+public class FlightMonitorSkeleton extends Skeleton{
 	//socket to send/receive messages
 	private DatagramSocket socket;
 	//object(class) name
 	private static String name = "FlightMonitor";
 	//reference to flight monitor implementation object
 	private FlightMonitorImplementation flightMonitor;
-	//data marshaller
-	private DataMarshaller marshaller;
 	
 	public FlightMonitorSkeleton(DatagramSocket socket, FlightMonitorImplementation flightMonitor){
 		this.socket = socket;
 		this.flightMonitor = flightMonitor;
 		marshaller = new DataMarshaller();
+		
+		//initialise function map
+		functionMap = new HashMap();
+		
+		functionMap.put("update", new SkeletonFunctionInterface(){
+			@Override
+			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
+				//unmarshall parameters from message
+				int availableSeats = (Integer)marshaller.fromMessage(data);
+				//pass parameter to method implementation
+				flightMonitor.update(availableSeats);
+				//return null message
+				return marshaller.nullMessage();
+			}
+		});
 	}
 	
 	public FlightMonitorSkeleton(int port, FlightMonitorImplementation flightMonitor) throws SocketException{
@@ -80,46 +95,5 @@ public class FlightMonitorSkeleton implements SkeletonInterface{
 	
 	public String getName(){
 		return name;
-	}
-
-	//takes in a packet returns a reply message in bytes
-	@Override
-	public byte[] processMessage(DatagramPacket packet) {
-		// TODO Auto-generated method stub
-		byte[] message = packet.getData();
-		
-		//buffer off header
-		/////////////////////////////////////////////////////////////////////////
-		//get object name
-		int position = 0;
-		int length = message[position];
-		position++;
-		String className = new String(message, position, length);
-		position+=length;
-		//get method name
-		length = message[position];
-		position++;
-		String methodName = new String(message, position, length);
-		position+=length;
-		//get request counter
-		length = message[position];
-		position++;
-		int messageNo = Integer.parseInt(new String(message, position, length));
-		position+=length;
-		/////////////////////////////////////////////////////////////////////////
-		
-		byte[] sourceAddress = packet.getAddress().getAddress();
-		
-		byte[] data = marshaller.subBytes(message, position, packet.getLength());
-		//match method name to method
-		if(methodName.equals("update")){
-			//unmarshall parameters from message
-			int availableSeats = (Integer)marshaller.fromMessage(data);
-			//pass parameter to method implementation
-			flightMonitor.update(availableSeats);
-			//return null message
-			return marshaller.nullMessage();
-		}
-		return null;
 	}
 }

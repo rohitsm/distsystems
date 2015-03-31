@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Random;
 
 import Marshaller.DataMarshaller;
 
@@ -26,14 +27,14 @@ public abstract class Stub{
 	//data marshaller object
 	protected DataMarshaller marshaller;
 	//counter to keep track of repeated messages
-	private int packetCounter;
+	protected int packetCounter;
 	
 	public Stub(DatagramSocket socket, InetAddress host, int port){
 		this.socket = socket;
 		this.host = host;
 		this.port = port;
 		marshaller = new DataMarshaller();
-		packetCounter = 0;
+		packetCounter = new Random().nextInt();
 	}
 	
 	//retrieves (class) name of object
@@ -56,20 +57,19 @@ public abstract class Stub{
 		return marshaller.subBytes(buffer, 0, reply.getLength());
 	}
 	
-	//sends a message until a specified number timeouts has occurred
-	protected byte[] sendUntil(byte[] message, int count) throws IOException{
-		int counter = 0;
+	//sends a message for a duration
+	protected byte[] sendUntil(byte[] message, long duration) throws IOException{
+		long startTime = System.currentTimeMillis();
 		while(true){
 			//if timeout threshold reached
-			if(counter >= count)
+			if((System.currentTimeMillis()-startTime) > duration)
 				//throw time out exception
 				throw new SocketTimeoutException();
 			try{
 				//resend message
 				return send(message);
 			}catch(SocketTimeoutException e){
-				//increase counter by 1 for each time out exception
-				counter++;
+				//catch time out exception
 			}
 		}
 	}
@@ -91,5 +91,44 @@ public abstract class Stub{
 		//packet counter is automatically increase for each header generation
 		packetCounter++;
 		return header.getBytes();
+	}
+	
+	protected Object sendRequest(String functionName, byte[] parameters, Class expectedClass){
+		// TODO Auto-generated method stub
+		//create header
+		byte[] message = createPacketHeader(functionName);
+		//append marshaled parameters
+		message = marshaller.appendBytes(message, parameters);
+		try{
+			//send message for 5 minutes
+			long startTime = System.currentTimeMillis();
+			long duration = 5*60*1000;
+			while(true){
+				long remainingTime = duration - (System.currentTimeMillis() - startTime);
+				if(remainingTime <= 0)
+					break;
+				
+				byte[] reply = sendUntil(message, remainingTime);
+			
+				int length = reply[0];
+				if(reply.length <= (1+length))
+					return null;
+				int messageNo = Integer.parseInt(new String(reply, 1, length));
+				byte[] data = marshaller.subBytes(reply, 1+length, reply.length);
+				Object unmarshalledData = marshaller.fromMessage(data);
+				//if messageNo correct or data type correct, return data
+				if(messageNo==packetCounter)
+					if(expectedClass!=null){
+						if(expectedClass.isInstance(unmarshalledData))
+							return unmarshalledData;
+					}
+					else if(unmarshalledData==null)
+						return null;
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
