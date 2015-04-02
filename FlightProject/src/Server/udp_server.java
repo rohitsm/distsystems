@@ -13,7 +13,7 @@ public class udp_server {
         try
         {
             //1. creating a server socket, parameter is local port number
-            sock = new DatagramSocket(5000);
+            sock = new DatagramSocket(7777);
              
             //buffer to receive incoming data
             byte[] buffer = new byte[65536];

@@ -112,18 +112,23 @@ public abstract class Stub{
 			
 				int length = reply[0];
 				if(reply.length <= (1+length))
-					return null;
-				int messageNo = Integer.parseInt(new String(reply, 1, length));
-				byte[] data = marshaller.subBytes(reply, 1+length, reply.length);
-				Object unmarshalledData = marshaller.fromMessage(data);
-				//if messageNo correct or data type correct, return data
-				if(messageNo==packetCounter)
-					if(expectedClass!=null){
-						if(expectedClass.isInstance(unmarshalledData))
-							return unmarshalledData;
-					}
-					else if(unmarshalledData==null)
-						return null;
+					continue;
+				try{
+					int messageNo = Integer.parseInt(new String(reply, 1, length));
+					byte[] data = marshaller.subBytes(reply, 1+length, reply.length);
+					Object unmarshalledData = marshaller.fromMessage(data);
+					//if messageNo correct or data type correct, return data
+					if(messageNo==packetCounter){
+						if(unmarshalledData==null)
+							return null;
+						if(expectedClass!=null){
+							if(expectedClass.isInstance(unmarshalledData))
+								return unmarshalledData;
+						}
+					}	
+				}catch(Exception e){
+					e.printStackTrace();
+				}
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -52,6 +52,45 @@ public class DataMarshaller {
 		return null;
 	}
 	
+	private Convertor getConvertor(byte[] data, Counter pos){
+		Convertor convertor = null;
+		switch(data[pos.getValue()]){
+		case nullByte:
+		case boolByte:
+		case integerByte:
+		case longByte:
+		case floatByte:
+		case flightDetailsByte:
+			//get convertor
+			convertor = getConvertor(data[pos.getValue()]);
+			pos.inc();
+			break;
+		case stringByte:
+			//get convertor
+			StringConvertor stringConvertor = (StringConvertor) getConvertor(data[pos.getValue()]);
+			pos.inc();
+			//initialize size parmameter of convertor
+			stringConvertor.setSize(data[pos.getValue()]);
+			pos.inc();
+			convertor = stringConvertor;
+			break;
+		case arrayByte:
+			//get convertor
+			ArrayConvertor arrayConvertor = (ArrayConvertor) getConvertor(data[pos.getValue()]);
+			pos.inc();
+			//get second convertor array item type
+			arrayConvertor.setInternalConvertor(getConvertor(data, pos));
+			//initialize size parmameter of convertor
+			arrayConvertor.setSize(data[pos.getValue()]);
+			pos.inc();	
+			convertor = arrayConvertor;
+			break;
+		case remoteObjByte:
+			break;
+		}
+		return convertor;
+	}
+	
 	//converts java data/object to byte array message
 	//format of message as follows
 	//null
@@ -117,48 +156,11 @@ public class DataMarshaller {
 			return data;
 		}
 		//keep track of starting position of unread bytes
-		int position = 0;
+		Counter position = new Counter();
 		//while not end of byte array
-		while(position < message.length){
-			Convertor convertor = null;
-			//check data type byte
-			switch(message[position]){
-			case nullByte:
-				convertor = null;
-				position++;
-			case boolByte:
-			case integerByte:
-			case longByte:
-			case floatByte:
-			case flightDetailsByte:
-				//get convertor
-				convertor = getConvertor(message[position]);
-				position++;
-				break;
-			case stringByte:
-				//get convertor
-				StringConvertor stringConvertor = (StringConvertor) getConvertor(message[position]);
-				position++;
-				//initialize size parmameter of convertor
-				stringConvertor.setSize(message[position]);
-				position++;
-				convertor = stringConvertor;
-				break;
-			case arrayByte:
-				//get convertor
-				ArrayConvertor arrayConvertor = (ArrayConvertor) getConvertor(message[position]);
-				position++;
-				//get second convertor array item type
-				arrayConvertor.setInternalConvertor(getConvertor(message[position]));
-				position++;
-				//initialize size parmameter of convertor
-				arrayConvertor.setSize(message[position]);
-				position++;	
-				convertor = arrayConvertor;
-				break;
-			case remoteObjByte:
-				break;
-			}
+		while(position.getValue() < message.length){
+			//retrieve convertor
+			Convertor convertor = getConvertor(message, position);
 			//if convertor is null
 			if(convertor == null)
 				//data is null
@@ -166,9 +168,9 @@ public class DataMarshaller {
 			//else
 			else{
 				//convert bytes to data using convertor
-				data = convertor.fromBytes(subBytes(message, position, position+convertor.getByteCount()));
+				data = convertor.fromBytes(subBytes(message, position.getValue(), position.getValue()+convertor.getByteCount()));
 				//updates position
-				position += convertor.getByteCount();
+				position.inc(convertor.getByteCount());
 			}
 			//adds data to bufffer
 			dataBuffer.add(data);

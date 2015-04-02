@@ -38,7 +38,7 @@ public class FlightServerApplication {
 				}
 			}
 		}.start();
-		*/
+		//*/
 		try {
 			//create server
 			Server server = new Server(port);

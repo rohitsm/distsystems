@@ -40,6 +40,8 @@ public class FlightStub extends Stub implements FlightInterface{
 		parameters = marshaller.appendBytes(parameters, marshaller.toMessage(destination));
 		//send request
 		List<Integer> data = (List<Integer>) sendRequest("getID", parameters, List.class);
+		if(data==null)
+			data = new ArrayList();
 		return data;
 	}
 

@@ -17,7 +17,7 @@ public class udp_client
         String s;
          
         BufferedReader cin = new BufferedReader(new InputStreamReader(System.in));
-         
+        
         try
         {
             sock = new DatagramSocket();
@@ -30,7 +30,6 @@ public class udp_client
                 echo("Enter message to send : ");
                 s = (String)cin.readLine();
                 byte[] b = s.getBytes();
-                 
                 DatagramPacket  dp = new DatagramPacket(b , b.length , host , port);
                 sock.send(dp);
                 //now receive reply

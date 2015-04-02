@@ -41,7 +41,7 @@ public class FlightClientApplication {
 			//args[0] = "155.69.144.89";
 			args[1] = "5000";
 			args[2] = "0.0";
-			args[3] = "2000";
+			args[3] = "0";
 		}
 		//convert string to ip address
 		String[] addressBytes = args[0].split("\\.");
