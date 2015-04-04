@@ -35,7 +35,7 @@ public class FlightSkeleton extends Skeleton{
 		functionMap.put("getID", new SkeletonFunctionInterface(){
 			@Override
 			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
-				//unmarshall parameters from message
+				//unmarshal parameters from message
 				List objects = (List) marshaller.fromMessage(data);
 				//pass parameter to method implementation
 				//return marshalled reply
@@ -46,7 +46,7 @@ public class FlightSkeleton extends Skeleton{
 		functionMap.put("getFlightDetails", new SkeletonFunctionInterface(){
 			@Override
 			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
-				//unmarshall parameters from message
+				//unmarshal parameters from message
 				int iD = (Integer)marshaller.fromMessage(data);
 				//pass parameter to method implementation
 				//return marshalled reply
@@ -64,11 +64,12 @@ public class FlightSkeleton extends Skeleton{
 					return bookFlightHistory.get(sourceAddress).getReplyMessage();
 				//else
 				}else{
+					//set user of flight implementation
 					setUser(sourceAddress);
-					//unmarshall parameters from message
+					//unmarshal parameters from message
 					List objects = (List) marshaller.fromMessage(data);
 					//pass parameter to method implementation
-					//marshall reply
+					//marshal reply
 					byte[] reply = marshaller.toMessage(flights.bookFlight((Integer)objects.get(0), (Integer)objects.get(1)));
 					//cache reply
 					bookFlightHistory.put(sourceAddress, new RequestHistory(messageNo, reply));
@@ -88,7 +89,7 @@ public class FlightSkeleton extends Skeleton{
 					return monitorFlightHistory.get(sourceAddress).getReplyMessage();
 				}else{
 					
-					//unmarshall parameters from message
+					//unmarshal parameters from message
 					List objects = (List) marshaller.fromMessage(data);
 					//pass parameter to method implementation
 					boolean result =  flights.monitorFlight((Integer)objects.get(0), (Long)objects.get(1));
@@ -101,7 +102,7 @@ public class FlightSkeleton extends Skeleton{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					//marshall reply
+					//marshal reply
 					byte[] reply = marshaller.toMessage(result);
 					//cache reply
 					monitorFlightHistory.put(sourceAddress, new RequestHistory(messageNo, reply));
@@ -114,7 +115,7 @@ public class FlightSkeleton extends Skeleton{
 		functionMap.put("login", new SkeletonFunctionInterface(){
 			@Override
 			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
-				//unmarshall parameters from message
+				//unmarshal parameters from message
 				List objects = (List) marshaller.fromMessage(data);
 				//pass parameter to method implementation
 				String user = (String)objects.get(0);
@@ -126,7 +127,7 @@ public class FlightSkeleton extends Skeleton{
 					//clear cache for previous user using the same ip
 					clearCache(sourceAddress);
 				}
-				//marshall reply
+				//marshal reply
 				return marshaller.toMessage(result);
 			}
 		});
@@ -134,11 +135,12 @@ public class FlightSkeleton extends Skeleton{
 		functionMap.put("viewTickets", new SkeletonFunctionInterface(){
 			@Override
 			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
+				//set user of flight implementation
 				setUser(sourceAddress);
-				//unmarshall parameters from message
+				//unmarshal parameters from message
 				int iD = (Integer)marshaller.fromMessage(data);
 				//pass parameter to method implementation
-				//marshall reply
+				//marshal reply
 				return marshaller.toMessage(flights.viewTickets(iD));
 			}
 		});
@@ -151,11 +153,12 @@ public class FlightSkeleton extends Skeleton{
 					//return cached reply
 					return cancelTicketHistory.get(sourceAddress).getReplyMessage();
 				}else{
+					//set user of flight implementation
 					setUser(sourceAddress);
-					//unmarshall parameters from message
+					//unmarshal parameters from message
 					List objects = (List) marshaller.fromMessage(data);
 					//pass parameter to method implementation
-					//marshall reply
+					//marshal reply
 					byte[] reply = marshaller.toMessage(flights.cancelTickets((Integer)objects.get(0), (Integer)objects.get(1)));
 					//cache reply
 					cancelTicketHistory.put(sourceAddress, new RequestHistory(messageNo, reply));
@@ -166,10 +169,12 @@ public class FlightSkeleton extends Skeleton{
 		});
 	}
 	
+	//set flight implementation user from id address
 	private void setUser(InetAddress address){
 		flights.setUser(address);
 	}
 	
+	//removes cache record of a specify id address
 	private void clearCache(InetAddress address){
 		bookFlightHistory.remove(address);
 		monitorFlightHistory.remove(address);

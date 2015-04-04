@@ -105,6 +105,7 @@ class FlightStub(object):
         data = self.send_request("getID", parameters, list)
         if data is None:
             data = list()
+        #return result
         return data
     
     #returns flight details given a flight ID
@@ -113,6 +114,7 @@ class FlightStub(object):
         parameters = self.marshaller.to_bytes(id, 4)
         #send request
         data = self.send_request("getFlightDetails", parameters, FlightDetails)
+        #return result
         return data
     
     #returns result status of seat booking given the flight ID and number of seats to book
@@ -123,6 +125,7 @@ class FlightStub(object):
         data = self.send_request("bookFlight", parameters, int)
         if data is None:
             data = -2
+        #return result
         return data
     
     #returns monitor successful status given flight ID and duration to monitor
@@ -140,6 +143,7 @@ class FlightStub(object):
             server = FlightMonitorSkeleton(self.socket, monitor)
             #listen for updates
             server.listen_until(msec/1000.0)
+        #return result
         return data
 
     #additional functions
@@ -151,6 +155,7 @@ class FlightStub(object):
         data = self.send_request("login", parameters, bool)
         if data is None:
             data = False
+        #return result
         return data
     
     #returns number of tickets booked by user give the flight ID
@@ -171,5 +176,6 @@ class FlightStub(object):
         data = self.send_request("cancelTickets", parameters, bool)
         if data is None:
             data = False
+        #return result
         return data
     

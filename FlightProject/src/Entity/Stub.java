@@ -107,15 +107,19 @@ public abstract class Stub{
 				long remainingTime = duration - (System.currentTimeMillis() - startTime);
 				if(remainingTime <= 0)
 					break;
-				
+				//send message for remaining duration
 				byte[] reply = sendUntil(message, remainingTime);
-			
+				//a reply is received
+				//retrieve message no
 				int length = reply[0];
+				//if message not long enough, skipped reply
 				if(reply.length <= (1+length))
 					continue;
 				try{
 					int messageNo = Integer.parseInt(new String(reply, 1, length));
+					//extract data bytes
 					byte[] data = marshaller.subBytes(reply, 1+length, reply.length);
+					//unmarshal data bytes
 					Object unmarshalledData = marshaller.fromMessage(data);
 					//if messageNo correct or data type correct, return data
 					if(messageNo==packetCounter){
@@ -127,6 +131,8 @@ public abstract class Stub{
 						}
 					}	
 				}catch(Exception e){
+					//if message no is not an integer
+					//skip reply
 					e.printStackTrace();
 				}
 			}

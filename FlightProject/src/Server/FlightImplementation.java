@@ -178,28 +178,37 @@ public class FlightImplementation implements FlightInterface{
 		}
 	}
 
-	Map<String, String> userAccounts;
-	Map<InetAddress, String> userIPs;
-	String currentUser;
-	Map<String, Map<Integer, Integer>> userBookings;
+	//====================================for additional features=========================================
+	//maps users to passwords
+	private Map<String, String> userAccounts;
+	//maps ip addresses to users
+	private Map<InetAddress, String> userIPs;
+	//user of current request message
+	private String currentUser;
+	//maps user to their booking record
+	private Map<String, Map<Integer, Integer>> userBookings;
+	
+	//dummy data for user login
 	private void loadUsers(){
 		userAccounts = new HashMap();
 		userAccounts.put("user1", "123");
 		userAccounts.put("user2", "abc");
+		//initialize additional feature attributes
 		userIPs = new HashMap();
 		currentUser = "";
 		userBookings = new HashMap();
 	}
-	//each user has multiple flights
-	
 	
 	//additional functions
 	//login to flight system
 	@Override
 	public boolean login(String user, String password) {
 		// TODO Auto-generated method stub
+		//if user exist and password matches user
 		if(userAccounts.containsKey(user) && userAccounts.get(user).equals(password)){
+			//set current user to user
 			currentUser = user;
+			//return true
 			return true;
 		}
 		return false;
@@ -207,16 +216,21 @@ public class FlightImplementation implements FlightInterface{
 	
 	//registers an ip address to the user
 	public void registerUser(InetAddress address, String user){
+		//confirms the current user is login
 		if(currentUser.equals(user)){
+			//map ip address to user
 			userIPs.put(address, user);
 		}
 	}
 	
 	//sets current user based on ip address
 	public void setUser(InetAddress address){
+		//if ip address maps to a user 
 		if(userIPs.containsKey(address)){
+			//set current user to that user
 			currentUser = userIPs.get(address);
 		}else{
+			//else, clear current user
 			currentUser = "";
 		}
 	}

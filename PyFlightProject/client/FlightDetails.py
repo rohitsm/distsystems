@@ -4,6 +4,7 @@ Created on 2 Apr, 2015
 @author: Ronald
 '''
 
+#python version of the java Flight Details Class
 class FlightDetails(object):
     '''
     classdocs

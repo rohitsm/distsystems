@@ -42,6 +42,7 @@ public class FlightStub extends Stub implements FlightInterface{
 		List<Integer> data = (List<Integer>) sendRequest("getID", parameters, List.class);
 		if(data==null)
 			data = new ArrayList();
+		//return result
 		return data;
 	}
 
@@ -53,6 +54,7 @@ public class FlightStub extends Stub implements FlightInterface{
 		byte[] parameters = marshaller.toMessage(iD);
 		//send request
 		FlightDetails data = (FlightDetails) sendRequest("getFlightDetails", parameters, FlightDetails.class);
+		//return result
 		return data;
 	}
 
@@ -67,6 +69,7 @@ public class FlightStub extends Stub implements FlightInterface{
 		Integer data = (Integer) sendRequest("bookFlight", parameters, Integer.class);
 		if(data==null)
 			data = -2;
+		//return result
 		return data;
 	}
 
@@ -94,6 +97,7 @@ public class FlightStub extends Stub implements FlightInterface{
 				e.printStackTrace();
 			}
 		}
+		//return result
 		return data;
 	}
 
@@ -109,6 +113,7 @@ public class FlightStub extends Stub implements FlightInterface{
 		Boolean data = (Boolean) sendRequest("login", parameters, Boolean.class);
 		if(data==null)
 			data = false;
+		//return result
 		return data;
 	}
 
@@ -123,6 +128,7 @@ public class FlightStub extends Stub implements FlightInterface{
 		if(data == null){
 			data = -1;
 		}
+		//return result
 		return data;
 	}
 
@@ -137,6 +143,7 @@ public class FlightStub extends Stub implements FlightInterface{
 		Boolean data = (Boolean) sendRequest("cancelTickets", parameters, Boolean.class);
 		if(data==null)
 			data = false;
+		//return result
 		return data;
 	}
 }

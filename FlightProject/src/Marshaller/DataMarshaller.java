@@ -61,11 +61,13 @@ public class DataMarshaller {
 		case longByte:
 		case floatByte:
 		case flightDetailsByte:
+			//if null, boolean, integer, long, float, flightDetails
 			//get convertor
 			convertor = getConvertor(data[pos.getValue()]);
 			pos.inc();
 			break;
 		case stringByte:
+			//if string
 			//get convertor
 			StringConvertor stringConvertor = (StringConvertor) getConvertor(data[pos.getValue()]);
 			pos.inc();
@@ -75,6 +77,7 @@ public class DataMarshaller {
 			convertor = stringConvertor;
 			break;
 		case arrayByte:
+			//if array
 			//get convertor
 			ArrayConvertor arrayConvertor = (ArrayConvertor) getConvertor(data[pos.getValue()]);
 			pos.inc();
@@ -86,6 +89,7 @@ public class DataMarshaller {
 			convertor = arrayConvertor;
 			break;
 		case remoteObjByte:
+			//remote object not implemented
 			break;
 		}
 		return convertor;

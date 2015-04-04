@@ -30,13 +30,13 @@ public class FlightMonitorSkeleton extends Skeleton{
 		this.flightMonitor = flightMonitor;
 		marshaller = new DataMarshaller();
 		
-		//initialise function map
+		//initialize function map
 		functionMap = new HashMap();
 		
 		functionMap.put("update", new SkeletonFunctionInterface(){
 			@Override
 			public byte[] resolve(int messageNo, InetAddress sourceAddress, int sourcePort, byte[] data) {
-				//unmarshall parameters from message
+				//unmarshal parameters from message
 				int availableSeats = (Integer)marshaller.fromMessage(data);
 				//pass parameter to method implementation
 				flightMonitor.update(availableSeats);

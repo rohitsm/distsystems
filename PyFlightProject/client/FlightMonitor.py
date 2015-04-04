@@ -27,12 +27,12 @@ class FlightMonitorSkeleton(object):
         self.method_map = {"update":  self.resolve_update}
     
     def resolve_update(self, message_no, source_address, source_port, data):
-        #unmarshall parameters from message
+        #unmarshal parameters from message
         available_seats = self.marshaller.from_bytes(data)
         #if invalid data return ignore
         if available_seats is None:
             return
-        #pass paramete to method implementation
+        #pass parameter to method implementation
         self.flight_monitor.update(available_seats)
         #return none message
         return self.marshaller.to_bytes(None)
@@ -74,18 +74,21 @@ class FlightMonitorSkeleton(object):
         data = msg[0]
         #process header
         try:
+            #retrieve object name
             position = 0
             length = data[position]
             position += 1
             next_position = position + length
             class_name = str(data[position:next_position], 'utf-8')
             
+            #retrieve method name
             position = next_position
             length = data[position]
             position += 1
             next_position = position + length
             method_name = str(data[position:next_position], 'utf-8')
             
+            #retrieve message no
             position = next_position
             length = data[position]
             position += 1
@@ -96,13 +99,16 @@ class FlightMonitorSkeleton(object):
             source_address = msg[1][0]
             source_port = msg[1][1]
             
+            #retrieve data bytes
             data = data[position:]
             
-            #look up method
+            #look up method handler
             data = self.method_map[method_name](message_no, source_address, source_port, data)
+            #add message no to reply
             message_no += 1
             counter = str(message_no)
             data = bytes(chr(len(counter)) + counter, 'utf-8') + data
+            #return reply
             return data
         except IndexError | ValueError as e:
             return
